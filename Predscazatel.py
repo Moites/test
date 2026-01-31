@@ -22,9 +22,6 @@ class ModelPredict:
         os.makedirs('model', exist_ok=True)
         self.df = pd.read_csv(self.dataset, encoding='utf-8')
         self.df['datetime'] = pd.to_datetime(self.df['datetime'], format='mixed', utc=True)
-        self.df['year'] = self.df['datetime'].dt.year
-        self.df['month'] = self.df['datetime'].dt.month
-        self.df['hour'] = self.df['datetime'].dt.hour
 
     def get_risk_level(self, row):
         level = 0
@@ -282,5 +279,3 @@ if __name__ == '__main__':
     model = ModelPredict()
     need_retrain, reason = model.model()
     cluster_df, data, kmeans = model.create_clustres()
-    clustered_file = 'track_dataset_clustered.csv'
-    cluster_df.to_csv(clustered_file, index=False)

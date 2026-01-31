@@ -114,7 +114,7 @@ class ModelA:
                 'daily': 'temperature_2m_max,weathercode',
                 'timezone': 'auto'
             }
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.3'}
+            headers = {'User-Agent': 'Mozilla/5.0'}
             response = requests.get(url, params=params, headers=headers, timeout=200)
             if response.status_code == 200:
                 data = response.json()
@@ -293,8 +293,8 @@ class ModelA:
         conn = pymysql.connect(host='MySQL-8.0', port=3306, user='testsql', password='1234', database='track_db')
         cursor = conn.cursor()
         cursor.execute('''INSERT INTO track (country, region, 
-                track_datetime, gpx_data) VALUES (%s, %s, %s, %s)''',
-                       (data['country'], data['region'], datetime_str, data['gpx_data']))
+                track_datetime, season, gpx_data) VALUES (%s, %s, %s, %s, %s)''',
+                       (data['country'], data['region'], datetime_str, self.get_season(data['track_datetime']), data['gpx_data']))
         track_id = cursor.lastrowid
         cursor.execute('''INSERT INTO metadata (track_id, temperature, weather, terrain_type, step_frequency, elevation)
                 VALUES (%s, %s, %s, %s, %s, %s)''',
@@ -340,8 +340,8 @@ class ModelA:
 if __name__ == '__main__':
     m = ModelA()
     gpx_fails = [
-        'https://www.openstreetmap.org/traces/12171403/data.gpx',
-        'https://www.openstreetmap.org/traces/12172753/data.gpx'
+        'https://www.openstreetmap.org/traces/12158994/data.gpx',
+        'https://www.openstreetmap.org/traces/12158936/data.gpx'
     ]
     for link in gpx_fails:
         gpx = m.download_gpx(link)

@@ -20,7 +20,6 @@ with open('model/model.pkl', 'rb') as f:
     model = pickle.load(f)
 with open('model/version.json', 'rb') as f:
     version = json.load(f)
-df = pd.read_csv('track_dataset_clustered.csv', encoding='utf-8')
 
 def get_weather_code(weather_code):
         map = {
