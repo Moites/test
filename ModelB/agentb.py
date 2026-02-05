@@ -27,7 +27,7 @@ class ModelDash:
         X = scaler.fit_transform(data[['temperature', 'elevation']])
         model.fit(X)
         return model, X, data
-    # Тяжко
+    
     def risk_data(self, model, df):
         risk_data = df.copy()
         risk_data['cluster'] = model.labels_
@@ -96,14 +96,58 @@ class ModelDash:
             return 'Средняя'
         else:
             return 'Низкая'
-
+        
+    def get_flood(self, row):
+        level = 0
+        if row['elevation'] < 200:
+            level += 2
+        elif row['elevation'] < 500:
+            level += 1
+        if row['terrain_type'] == 'Равнина':
+            level += 1
+        if row['weather'] == 'Rain' or row['weather'] == 'Freezing Rain' or row['weather'] == 'Rain showers':
+            level +=1 
+        if 'Вода' in row['poi_objects']:
+            level += 1
+        if level >= 4:
+            return 'Высокий'
+        elif level >= 2:
+            return 'Средний'
+        else:
+            return 'Низкий'
+        
+    def get_fire_danger(self, row):
+        level = 0
+        if row['elevation'] < 1000:
+            level += 2
+        elif row['elevation'] < 500:
+            level += 1
+        if row['terrain_type'] == 'Пересеченная':
+            level += 1
+        if row['weather'] == 'Clear sky' or row['weather'] == 'Mainly clear/partly cloudy/overcast':
+            level +=1 
+        if row['temperature'] > 30:
+            level += 2
+        elif row['temperature'] > 20:
+            level += 1
+        if 'Вода' in row['poi_objects']:
+            level -= 1
+        if 'Дерево' in row['poi_objects']:
+            level += 1
+        if level >= 5:
+            return 'Высокий'
+        elif level >= 3:
+            return 'Средний'
+        else:
+            return 'Низкий'
+        
     def create_dash(self):
-        conn = pymysql.connect(host='MySQL-8.0', port=3306, user='root', password='', database='track_db2')
+        conn = pymysql.connect(host='MySQL-8.0', port=3306, user='root', password='', database='track_db')
         cursor = conn.cursor()
-        cursor.execute('''SELECT DISTINCT region FROM track''')
+        cursor.execute('''SELECT DISTINCT region FROM tracks''')
         regions_raw = cursor.fetchall()
         regions = [str(region[0]) for region in regions_raw if region[0]]
-        cursor.execute('''SELECT COUNT(track_id) FROM track''')
+        cursor.execute('''SELECT COUNT(track_id) FROM tracks''')
         tracks = cursor.fetchone()[0]
         conn.close()
 
@@ -156,8 +200,8 @@ class ModelDash:
         )
 
         def update_dash(region, time_of_day):
-            conn = pymysql.connect(host='MySQL-8.0', port=3306, user='root', password='', database='track_db2')
-            track_df = pd.read_sql_query('SELECT * FROM track', conn)
+            conn = pymysql.connect(host='MySQL-8.0', port=3306, user='root', password='', database='track_db')
+            track_df = pd.read_sql_query('SELECT * FROM tracks', conn)
             points_df = pd.read_sql_query('SELECT * FROM points', conn)
             filtered_df = track_df.copy()
             conn.commit()
@@ -217,13 +261,15 @@ class ModelDash:
 
             points_df['risk_level'] = points_df.apply(self.get_risk_level, axis=1)
             points_df['evac_level'] = points_df.apply(self.get_evacuation_level, axis=1)
+            points_df['flood_level'] = points_df.apply(self.get_flood, axis=1)
+            points_df['fire_level'] = points_df.apply(self.get_fire_danger, axis=1)
 
             fig9 = px.scatter_map(points_df, lat='latitude', lon='longitude',
                                      labels={'latitude': 'Ширина', 'longitude': 'Долгота',
                                              'risk_level': 'Уровень риска'},
                                      color_discrete_map={'Низкая': 'green', 'Средняя': 'yellow', 'Высокая': 'red'},
                                      title='Интерактивная карта', color='risk_level',
-                                  hover_data=['risk_level', 'evac_level'], zoom=8)
+                                  hover_data=['risk_level', 'evac_level', 'flood_level', 'fire_level'], zoom=8)
             fig9.layout.update(mapbox_style='open-street-map')
 
             silhouette = silhouette_score(X, model.labels_)
