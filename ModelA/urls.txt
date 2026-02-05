@@ -1,0 +1,4 @@
+'https://nasledniki.narod.ru/03_GPS/GPS_Sources/01_Olhinskoe_plateau/Orlenok_Potajnye_Kamni.gpx',
+'https://nasledniki.narod.ru/03_GPS/GPS_Sources/01_Olhinskoe_plateau/R258_Barynya.gpx'
+'https://nasledniki.narod.ru/03_GPS/GPS_Sources/02_Hamar-Daban/Babha_1_peak_Porozhistyy_Solzan.gpx'
+'https://nasledniki.narod.ru/03_GPS/GPS_Sources/03_East_Sayan_Mountains/Mondy_peak_Huruma.gpx'
